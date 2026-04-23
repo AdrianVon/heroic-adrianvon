@@ -581,8 +581,9 @@
       align-items: flex-start;
       gap: 1rem;
       transition: border-color 0.2s;
+      cursor: pointer;
     }
-    .entry-card:hover { border-color: #3e3e52; }
+    .entry-card:hover { border-color: #5a5a72; }
 
     .entry-card-body {
       flex: 1;
@@ -657,28 +658,6 @@
       padding: 1px 6px;
     }
 
-    .entry-delete-btn {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      border-radius: 6px;
-      padding: 0.4rem 0.7rem;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: border-color 0.2s, color 0.2s, background 0.2s;
-    }
-    .entry-delete-btn:hover {
-      border-color: var(--red);
-      color: var(--red);
-      background: #ef444412;
-    }
-    .entry-delete-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
     /* Library states */
     .library-loading,
     .library-empty,
@@ -702,6 +681,136 @@
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ══════════════════════════════════════
+       ENTRY DETAIL PANEL
+    ══════════════════════════════════════ */
+    #entryDetailPanel {
+      display: none;
+      width: 100%;
+      max-width: 720px;
+    }
+
+    .detail-back-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 0.3rem 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: color 0.2s;
+      margin-bottom: 1.25rem;
+    }
+    .detail-back-btn:hover { color: var(--accent); }
+
+    .detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .detail-header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .detail-title-text {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .detail-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1.75rem;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-delete-outline {
+      background: none;
+      border: 1px solid var(--red);
+      color: var(--red);
+      padding: 0.7rem 1.5rem;
+      border-radius: 7px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+    }
+    .btn-delete-outline:hover { background: #ef444418; }
+
+    /* Delete confirmation section */
+    #deleteConfirmSection {
+      display: none;
+      margin-top: 1.25rem;
+      background: #ef444418;
+      border: 1px solid var(--red);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+
+    .delete-confirm-warning {
+      font-size: 0.82rem;
+      color: #f87171;
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+      line-height: 1.5;
+    }
+
+    .delete-confirm-warning span {
+      color: var(--text);
+      font-family: monospace;
+      background: #ef444430;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    #deleteConfirmInput {
+      margin-bottom: 0.85rem;
+    }
+
+    .delete-confirm-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-confirm-delete {
+      background: var(--red);
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 7px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-confirm-delete:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-confirm-delete:not(:disabled):hover { opacity: 0.85; }
+
+    .delete-cancel-link {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+    }
+    .delete-cancel-link:hover { color: var(--text); }
 
     /* ── Delete confirm modal ── */
     .modal-backdrop {
@@ -1070,35 +1179,132 @@
   <!-- ── LIBRARY panel ── -->
   <div class="tab-panel" id="panelLibrary">
 
-    <div class="library-toolbar">
-      <input class="library-search" type="text" id="librarySearch" placeholder="Search titles, tags, modules…" oninput="filterLibrary()" />
-      <select class="library-filter" id="libraryTypeFilter" onchange="filterLibrary()">
-        <option value="">All types</option>
-        <option value="reflection">Reflection</option>
-        <option value="worksheet">Worksheet</option>
-        <option value="philosophers_note">Philosopher's Note</option>
-        <option value="theory">Theory / Concept</option>
-        <option value="principle">Personal Principle</option>
-      </select>
-      <select class="library-filter" id="libraryModuleFilter" onchange="filterLibrary()">
-        <option value="">All modules</option>
-      </select>
-      <button class="library-refresh" onclick="loadLibrary()">Refresh</button>
-      <span class="library-count" id="libraryCount"></span>
-    </div>
+    <!-- Library filters + list (hidden when detail panel is open) -->
+    <div id="libraryFiltersAndList">
+      <div class="library-toolbar">
+        <input class="library-search" type="text" id="librarySearch" placeholder="Search titles, tags, modules…" oninput="filterLibrary()" />
+        <select class="library-filter" id="libraryTypeFilter" onchange="filterLibrary()">
+          <option value="">All types</option>
+          <option value="reflection">Reflection</option>
+          <option value="worksheet">Worksheet</option>
+          <option value="philosophers_note">Philosopher's Note</option>
+          <option value="theory">Theory / Concept</option>
+          <option value="principle">Personal Principle</option>
+        </select>
+        <select class="library-filter" id="libraryModuleFilter" onchange="filterLibrary()">
+          <option value="">All modules</option>
+        </select>
+        <button class="library-refresh" onclick="loadLibrary()">Refresh</button>
+        <span class="library-count" id="libraryCount"></span>
+      </div>
 
-    <div id="libraryContent">
-      <div class="library-loading">
-        <div class="library-spinner"></div><br/>
-        Loading entries…
+      <div id="libraryContent">
+        <div class="library-loading">
+          <div class="library-spinner"></div><br/>
+          Loading entries…
+        </div>
       </div>
     </div>
+
+    <!-- Entry Detail / Edit Panel -->
+    <div id="entryDetailPanel">
+      <button class="detail-back-btn" onclick="closeEntryDetail()">← Back to Library</button>
+
+      <div class="detail-header">
+        <div class="detail-header-left">
+          <span id="detailTypeBadge" class="entry-type-badge"></span>
+          <span id="detailTitleDisplay" class="detail-title-text"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-bottom: 1.5rem;">Edit Entry</h2>
+
+        <div class="field">
+          <label>Title</label>
+          <input type="text" id="detailTitle" placeholder="Entry title" />
+        </div>
+
+        <div class="field">
+          <label>Module</label>
+          <select id="detailModuleSelect" onchange="onDetailModuleChange()">
+            <option value="">— Select module —</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Lesson Group</label>
+          <select id="detailLessonGroupSelect">
+            <option value="">— Select lesson group —</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Summary</label>
+          <textarea id="detailSummary" rows="3" placeholder="Brief summary…"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Explanation in your own words</label>
+          <textarea id="detailBody" rows="7" placeholder="Body / explanation…"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Key Ideas</label>
+          <textarea id="detailKeyIdeas" rows="5" placeholder="One key idea per line…"></textarea>
+          <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px">One idea per line. Each line is stored as a separate item.</div>
+        </div>
+
+        <div class="field">
+          <label>Source Quote</label>
+          <input type="text" id="detailSourceQuote" placeholder="Source quote…" />
+        </div>
+
+        <div class="field">
+          <label>Tags</label>
+          <input type="text" id="detailTags" placeholder="tag1, tag2, tag3" />
+          <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px">Comma-separated.</div>
+        </div>
+
+        <div class="field">
+          <label>AI Context Weight</label>
+          <div class="weight-row">
+            <input type="range" id="detailAiWeight" min="1" max="10" value="5"
+                   oninput="document.getElementById('detailWeightVal').textContent=this.value" />
+            <span class="weight-value" id="detailWeightVal">5</span>
+          </div>
+          <div class="weight-labels">
+            <span>1 — light background</span>
+            <span>10 — always surface</span>
+          </div>
+        </div>
+
+        <div class="detail-footer">
+          <button class="btn-delete-outline" onclick="initiateDelete()">Delete Entry</button>
+          <button class="btn btn-primary" id="saveChangesBtn" onclick="saveEntryChanges()">Save Changes</button>
+        </div>
+
+        <!-- Inline delete confirmation -->
+        <div id="deleteConfirmSection">
+          <div class="delete-confirm-warning">
+            This cannot be undone. To delete, type: <span id="deleteConfirmPhrase"></span>
+          </div>
+          <input type="text" id="deleteConfirmInput" placeholder="Type the phrase above to confirm…"
+                 oninput="onDeleteConfirmInput()" />
+          <div class="delete-confirm-actions">
+            <button class="btn-confirm-delete" id="confirmDeleteEntryBtn" disabled onclick="confirmDeleteEntry()">Confirm Delete</button>
+            <button class="delete-cancel-link" onclick="cancelDelete()">Cancel</button>
+          </div>
+        </div>
+
+      </div><!-- /card -->
+    </div><!-- /entryDetailPanel -->
 
   </div><!-- /panelLibrary -->
 
 </div><!-- /appShell -->
 
-<!-- Delete confirm modal -->
+<!-- Delete confirm modal (kept for legacy — no longer used for card delete, kept in case needed) -->
 <div class="modal-backdrop" id="deleteModal">
   <div class="modal">
     <h3>Delete this entry?</h3>
@@ -1272,6 +1478,7 @@
   let libraryLoaded = false;
   let pendingDeleteId   = null;
   let pendingDeleteTitle = '';
+  let currentEntryId = null;
 
   const TYPE_LABELS = {
     reflection:        'Reflection',
@@ -1298,7 +1505,7 @@
     try {
       // Fetch all three in parallel
       const [entriesRes, modulesRes, lgRes] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/heroic_entries?select=id,title,entry_type,tags,created_at,ai_context_weight,module_id,lesson_group_id&order=created_at.desc&limit=500`, { headers: hdrs }),
+        fetch(`${SUPABASE_URL}/rest/v1/heroic_entries?select=id,title,entry_type,tags,created_at,ai_context_weight,module_id,lesson_group_id,summary,body,key_ideas,source_quote&order=created_at.desc&limit=500`, { headers: hdrs }),
         fetch(`${SUPABASE_URL}/rest/v1/heroic_modules?select=id,number,title&order=number.asc`, { headers: hdrs }),
         fetch(`${SUPABASE_URL}/rest/v1/heroic_lesson_groups?select=id,number,title,module_id&order=number.asc`, { headers: hdrs })
       ]);
@@ -1428,7 +1635,7 @@
       : '';
 
     return `
-      <div class="entry-card" id="ec-${e.id}">
+      <div class="entry-card" id="ec-${e.id}" onclick="openEntryDetail('${e.id}')">
         <div class="entry-card-body">
           <div class="entry-card-top">
             <span class="entry-type-badge ${badgeClass}">${escHtml(typeLabel)}</span>
@@ -1441,12 +1648,300 @@
           </div>
           ${tagsHtml}
         </div>
-        <button class="entry-delete-btn" onclick="openDeleteModal('${e.id}', ${JSON.stringify(escHtml(e.title || 'Untitled'))})">Delete</button>
       </div>
     `;
   }
 
-  /* ── Delete flow ── */
+  /* ══════════════════════════════════════════════════
+     ENTRY DETAIL PANEL
+  ══════════════════════════════════════════════════ */
+
+  function openEntryDetail(id) {
+    const entry = allEntries.find(e => e.id === id);
+    if (!entry) return;
+
+    currentEntryId = id;
+
+    // Update header display
+    const typeLabel = TYPE_LABELS[entry.entry_type] || entry.entry_type;
+    const badgeEl = document.getElementById('detailTypeBadge');
+    badgeEl.textContent = typeLabel;
+    badgeEl.className = `entry-type-badge badge-${entry.entry_type}`;
+    document.getElementById('detailTitleDisplay').textContent = entry.title || 'Untitled';
+
+    // Populate fields
+    document.getElementById('detailTitle').value = entry.title || '';
+    document.getElementById('detailSummary').value = entry.summary || '';
+    document.getElementById('detailBody').value = entry.body || '';
+    document.getElementById('detailKeyIdeas').value = Array.isArray(entry.key_ideas)
+      ? entry.key_ideas.join('\n')
+      : (entry.key_ideas || '');
+    document.getElementById('detailSourceQuote').value = entry.source_quote || '';
+    document.getElementById('detailTags').value = Array.isArray(entry.tags)
+      ? entry.tags.join(', ')
+      : (entry.tags || '');
+    const weight = entry.ai_context_weight != null ? entry.ai_context_weight : 5;
+    document.getElementById('detailAiWeight').value = weight;
+    document.getElementById('detailWeightVal').textContent = weight;
+
+    // Populate module dropdown
+    populateDetailModuleSelect(entry.module_id);
+
+    // Hide delete confirm section
+    document.getElementById('deleteConfirmSection').style.display = 'none';
+    document.getElementById('deleteConfirmInput').value = '';
+    document.getElementById('confirmDeleteEntryBtn').disabled = true;
+
+    // Reset save button
+    const saveBtn = document.getElementById('saveChangesBtn');
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Changes';
+
+    // Show detail panel, hide filters+list
+    document.getElementById('libraryFiltersAndList').style.display = 'none';
+    document.getElementById('entryDetailPanel').style.display = 'block';
+  }
+
+  function closeEntryDetail() {
+    currentEntryId = null;
+    document.getElementById('entryDetailPanel').style.display = 'none';
+    document.getElementById('libraryFiltersAndList').style.display = '';
+  }
+
+  function populateDetailModuleSelect(selectedModuleId) {
+    const sel = document.getElementById('detailModuleSelect');
+    sel.innerHTML = '<option value="">— Select module —</option>';
+
+    const moduleOptions = [
+      { value: '0',   label: 'Module 0 — Optimize = Optimist = Best = Eudaimon = Hero' },
+      { value: '1',   label: 'Module 1 — Eudaimonology' },
+      { value: '2',   label: 'Module 2 — Heroology' },
+      { value: '3',   label: 'Module 3 — The Big Three (×2)' },
+      { value: '4',   label: 'Module 4 — Carpe Diem' },
+      { value: '5',   label: 'Module 5 — Algorithms' },
+      { value: '6',   label: 'Module 6 — Fundamentals' },
+      { value: '7',   label: 'Module 7 — Optimist U' },
+      { value: 'Pre', label: 'Pre-Reading — Core Wisdom' }
+    ];
+
+    // If we have the modules cache, use it (UUID-keyed)
+    if (_modulesCache) {
+      const mods = Object.values(_modulesCache).sort((a, b) => {
+        const an = isNaN(parseFloat(a.number)) ? 999 : parseFloat(a.number);
+        const bn = isNaN(parseFloat(b.number)) ? 999 : parseFloat(b.number);
+        return an - bn;
+      });
+      mods.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        const label = isNaN(parseFloat(m.number))
+          ? `${m.number} — ${m.title}`
+          : `Module ${m.number} — ${m.title}`;
+        opt.textContent = label;
+        if (m.id === selectedModuleId) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    } else {
+      moduleOptions.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.value;
+        opt.textContent = m.label;
+        sel.appendChild(opt);
+      });
+    }
+
+    // Populate lesson groups for the selected module
+    populateDetailLessonGroupSelect(selectedModuleId, null);
+
+    // Now set lesson group
+    const entry = allEntries.find(e => e.id === currentEntryId);
+    if (entry && entry.lesson_group_id) {
+      const lgSel = document.getElementById('detailLessonGroupSelect');
+      // Try to select by UUID
+      let found = false;
+      for (const opt of lgSel.options) {
+        if (opt.value === entry.lesson_group_id) {
+          opt.selected = true;
+          found = true;
+          break;
+        }
+      }
+    }
+  }
+
+  function populateDetailLessonGroupSelect(moduleId, selectedLgId) {
+    const lgSel = document.getElementById('detailLessonGroupSelect');
+    lgSel.innerHTML = '<option value="">— Select lesson group —</option>';
+
+    if (!moduleId || !_lessonGroupsCache) return;
+
+    // Filter lesson groups by module_id (UUID match)
+    const lgs = Object.values(_lessonGroupsCache)
+      .filter(lg => lg.module_id === moduleId)
+      .sort((a, b) => {
+        const an = isNaN(parseFloat(a.number)) ? 999 : parseFloat(a.number);
+        const bn = isNaN(parseFloat(b.number)) ? 999 : parseFloat(b.number);
+        return an - bn;
+      });
+
+    lgs.forEach(lg => {
+      const opt = document.createElement('option');
+      opt.value = lg.id;
+      opt.textContent = lg.number != null ? `${lg.number} — ${lg.title}` : lg.title;
+      if (selectedLgId && lg.id === selectedLgId) opt.selected = true;
+      lgSel.appendChild(opt);
+    });
+  }
+
+  function onDetailModuleChange() {
+    const moduleId = document.getElementById('detailModuleSelect').value;
+    populateDetailLessonGroupSelect(moduleId, null);
+  }
+
+  /* ── Save entry changes ── */
+  async function saveEntryChanges() {
+    if (!currentEntryId) return;
+
+    const saveBtn = document.getElementById('saveChangesBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    const title       = document.getElementById('detailTitle').value.trim();
+    const moduleId    = document.getElementById('detailModuleSelect').value || null;
+    const lgId        = document.getElementById('detailLessonGroupSelect').value || null;
+    const summary     = document.getElementById('detailSummary').value.trim() || null;
+    const body        = document.getElementById('detailBody').value.trim() || null;
+    const rawKeyIdeas = document.getElementById('detailKeyIdeas').value.trim();
+    const keyIdeas    = rawKeyIdeas
+      ? rawKeyIdeas.split('\n').map(l => l.trim()).filter(Boolean)
+      : null;
+    const sourceQuote = document.getElementById('detailSourceQuote').value.trim() || null;
+    const rawTags     = document.getElementById('detailTags').value;
+    const tagsArr     = rawTags
+      ? rawTags.split(',').map(t => t.trim()).filter(Boolean)
+      : null;
+    const aiWeight    = parseInt(document.getElementById('detailAiWeight').value);
+
+    const patchBody = {
+      title,
+      module_id:         moduleId,
+      lesson_group_id:   lgId,
+      summary,
+      body,
+      key_ideas:         keyIdeas,
+      source_quote:      sourceQuote,
+      tags:              tagsArr,
+      ai_context_weight: aiWeight
+    };
+
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/heroic_entries?id=eq.${encodeURIComponent(currentEntryId)}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'apikey':        SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type':  'application/json',
+            'Prefer':        'return=minimal'
+          },
+          body: JSON.stringify(patchBody)
+        }
+      );
+
+      if (!res.ok && res.status !== 204) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `HTTP ${res.status}`);
+      }
+
+      // Update local cache
+      const idx = allEntries.findIndex(e => e.id === currentEntryId);
+      if (idx !== -1) {
+        allEntries[idx] = {
+          ...allEntries[idx],
+          ...patchBody,
+          heroic_modules:       (_modulesCache && moduleId) ? _modulesCache[moduleId] : null,
+          heroic_lesson_groups: (_lessonGroupsCache && lgId) ? _lessonGroupsCache[lgId] : null
+        };
+      }
+
+      showToast('Changes saved', 'success');
+      closeEntryDetail();
+      filterLibrary();
+
+    } catch (err) {
+      showToast(`Save failed: ${err.message}`, 'error');
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Changes';
+    }
+  }
+
+  /* ── Delete flow (detail panel) ── */
+  function initiateDelete() {
+    const entry = allEntries.find(e => e.id === currentEntryId);
+    if (!entry) return;
+    const phrase = `DELETE ${entry.title || 'Untitled'}`;
+    document.getElementById('deleteConfirmPhrase').textContent = phrase;
+    document.getElementById('deleteConfirmInput').value = '';
+    document.getElementById('confirmDeleteEntryBtn').disabled = true;
+    document.getElementById('deleteConfirmSection').style.display = 'block';
+    document.getElementById('deleteConfirmInput').focus();
+  }
+
+  function onDeleteConfirmInput() {
+    const entry = allEntries.find(e => e.id === currentEntryId);
+    if (!entry) return;
+    const expected = `DELETE ${entry.title || 'Untitled'}`;
+    const val = document.getElementById('deleteConfirmInput').value;
+    document.getElementById('confirmDeleteEntryBtn').disabled = (val !== expected);
+  }
+
+  function cancelDelete() {
+    document.getElementById('deleteConfirmSection').style.display = 'none';
+    document.getElementById('deleteConfirmInput').value = '';
+    document.getElementById('confirmDeleteEntryBtn').disabled = true;
+  }
+
+  async function confirmDeleteEntry() {
+    if (!currentEntryId) return;
+
+    const btn = document.getElementById('confirmDeleteEntryBtn');
+    btn.disabled = true;
+    btn.textContent = 'Deleting…';
+
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/heroic_entries?id=eq.${encodeURIComponent(currentEntryId)}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'apikey':        SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Prefer':        'return=minimal'
+          }
+        }
+      );
+
+      if (!res.ok && res.status !== 204 && res.status !== 200) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `HTTP ${res.status}`);
+      }
+
+      // Remove from local cache
+      allEntries = allEntries.filter(e => e.id !== currentEntryId);
+
+      showToast('Entry deleted', 'success');
+      closeEntryDetail();
+      filterLibrary();
+
+    } catch (err) {
+      showToast(`Delete failed: ${err.message}`, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Confirm Delete';
+    }
+  }
+
+  /* ── Legacy delete modal (no longer triggered from cards, kept for safety) ── */
   function openDeleteModal(id, title) {
     pendingDeleteId    = id;
     pendingDeleteTitle = title;
