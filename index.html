@@ -1117,7 +1117,7 @@
      CONFIG
   ══════════════════════════════════════════════════ */
   const SUPABASE_URL     = 'https://pfvbfpyxchglxveyjsge.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_eOZHAg_c0og_G5I0VIM60g_bc8ziADW';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmdmJmcHl4Y2hnbHh2ZXlqc2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMTE1NzgsImV4cCI6MjA4NTg4NzU3OH0.-wi-iVu1Pn4t9OKjNElB_enmEXR4rbXcmOSDuAgpAn0';
   const GOOGLE_CLIENT_ID  = '1089976022002-12o5qu5scmm7vugc6sh8s5rpt4e5nfke.apps.googleusercontent.com';
   const ALLOWED_EMAIL     = 'adrianvoncodes@gmail.com';
 
@@ -1281,6 +1281,10 @@
     principle:         'Personal Principle'
   };
 
+  // Cache of module/lesson group lookups
+  let _modulesCache = null;
+  let _lessonGroupsCache = null;
+
   async function loadLibrary() {
     libraryLoaded = false;
     document.getElementById('libraryContent').innerHTML = `
@@ -1289,23 +1293,33 @@
       </div>`;
     document.getElementById('libraryCount').textContent = '';
 
+    const hdrs = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` };
+
     try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/heroic_entries?select=id,title,entry_type,tags,created_at,ai_context_weight,heroic_modules(number,title),heroic_lesson_groups(number,title)&order=created_at.desc&limit=500`,
-        {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          }
-        }
-      );
+      // Fetch all three in parallel
+      const [entriesRes, modulesRes, lgRes] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/heroic_entries?select=id,title,entry_type,tags,created_at,ai_context_weight,module_id,lesson_group_id&order=created_at.desc&limit=500`, { headers: hdrs }),
+        fetch(`${SUPABASE_URL}/rest/v1/heroic_modules?select=id,number,title&order=number.asc`, { headers: hdrs }),
+        fetch(`${SUPABASE_URL}/rest/v1/heroic_lesson_groups?select=id,number,title,module_id&order=number.asc`, { headers: hdrs })
+      ]);
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || `HTTP ${res.status}`);
-      }
+      if (!entriesRes.ok) throw new Error(`Entries fetch failed: HTTP ${entriesRes.status}`);
 
-      allEntries = await res.json();
+      const entries   = await entriesRes.json();
+      const modules   = modulesRes.ok ? await modulesRes.json() : [];
+      const lgs       = lgRes.ok ? await lgRes.json() : [];
+
+      // Build lookup maps
+      _modulesCache     = Object.fromEntries(modules.map(m => [m.id, m]));
+      _lessonGroupsCache = Object.fromEntries(lgs.map(l => [l.id, l]));
+
+      // Attach module/lesson group objects to each entry
+      allEntries = entries.map(e => ({
+        ...e,
+        heroic_modules:       _modulesCache[e.module_id]       || null,
+        heroic_lesson_groups: _lessonGroupsCache[e.lesson_group_id] || null
+      }));
+
       libraryLoaded = true;
       populateModuleFilter();
       filterLibrary();
