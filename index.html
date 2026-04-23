@@ -84,8 +84,27 @@
       line-height: 1.5;
     }
 
-    #gSignInBtn {
+    /* Custom Google sign-in button */
+    #gSignInBtnCustom {
       width: 100%;
+      background: #1a1a22;
+      border: 1px solid #f59e0b;
+      color: #f59e0b;
+      border-radius: 10px;
+      padding: 0.85rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: background 0.2s, color 0.2s;
+      font-family: var(--font);
+    }
+    #gSignInBtnCustom:hover {
+      background: #f59e0b;
+      color: #0f0f13;
     }
 
     #authDenied {
@@ -579,7 +598,7 @@
     }
 
     .entry-title {
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 600;
       color: var(--text);
       white-space: nowrap;
@@ -605,6 +624,12 @@
     .badge-philosophers_note { background: #14532d; color: #86efac; }
     .badge-theory           { background: #2d1b69; color: #c4b5fd; }
     .badge-principle        { background: #451a03; color: var(--accent); }
+
+    .entry-module-info {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin-bottom: 0.3rem;
+    }
 
     .entry-meta {
       font-size: 0.75rem;
@@ -777,7 +802,10 @@
   <div class="auth-card">
     <h2>Sign in to continue</h2>
     <p>Access is restricted to authorized users. Sign in with your Google account to proceed.</p>
-    <div id="gSignInBtn"></div>
+    <button id="gSignInBtnCustom" onclick="triggerGoogleSignIn()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+      Sign in with Google
+    </button>
     <div id="authDenied">Access denied. This tool is private.</div>
   </div>
 </div>
@@ -1052,6 +1080,9 @@
         <option value="theory">Theory / Concept</option>
         <option value="principle">Personal Principle</option>
       </select>
+      <select class="library-filter" id="libraryModuleFilter" onchange="filterLibrary()">
+        <option value="">All modules</option>
+      </select>
       <button class="library-refresh" onclick="loadLibrary()">Refresh</button>
       <span class="library-count" id="libraryCount"></span>
     </div>
@@ -1091,7 +1122,7 @@
   const ALLOWED_EMAIL     = 'adrianvoncodes@gmail.com';
 
   /* ══════════════════════════════════════════════════
-     AUTH — Google Identity Services (GSI)
+     AUTH — Google OAuth2 implicit flow + sessionStorage persistence
   ══════════════════════════════════════════════════ */
   function initGoogleAuth() {
     google.accounts.id.initialize({
@@ -1101,26 +1132,82 @@
       cancel_on_tap_outside: true
     });
 
-    google.accounts.id.renderButton(
-      document.getElementById('gSignInBtn'),
-      {
-        theme: 'filled_black',
-        size: 'large',
-        shape: 'pill',
-        width: 280,
-        text: 'signin_with'
+    // Check sessionStorage for persisted session
+    const storedUserInfo = sessionStorage.getItem('hc_userinfo');
+    if (storedUserInfo) {
+      try {
+        const userInfo = JSON.parse(storedUserInfo);
+        handleUserInfo(userInfo);
+        return;
+      } catch (e) {
+        sessionStorage.removeItem('hc_userinfo');
       }
-    );
+    }
   }
 
-  // Called when GSI returns a credential
+  // Trigger Google OAuth2 implicit flow for custom button
+  function triggerGoogleSignIn() {
+    if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+      showToast('Google Sign-In not ready yet. Please wait a moment.', 'error');
+      return;
+    }
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: 'openid email profile',
+      callback: (tokenResponse) => {
+        if (tokenResponse.error) {
+          document.getElementById('authDenied').textContent = 'Sign-in error. Please try again.';
+          document.getElementById('authDenied').style.display = 'block';
+          return;
+        }
+        fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+        })
+          .then(r => r.json())
+          .then(userInfo => handleUserInfo(userInfo))
+          .catch(() => {
+            document.getElementById('authDenied').textContent = 'Sign-in error. Please try again.';
+            document.getElementById('authDenied').style.display = 'block';
+          });
+      }
+    });
+    client.requestAccessToken({ prompt: 'select_account' });
+  }
+
+  // Handle userinfo object from OAuth2 userinfo endpoint
+  function handleUserInfo(userInfo) {
+    const email = (userInfo.email || '').toLowerCase();
+
+    if (email !== ALLOWED_EMAIL.toLowerCase()) {
+      document.getElementById('authDenied').style.display = 'block';
+      sessionStorage.removeItem('hc_userinfo');
+      return;
+    }
+
+    // Persist session
+    sessionStorage.setItem('hc_userinfo', JSON.stringify(userInfo));
+
+    // Authorized — show app
+    document.getElementById('authDenied').style.display = 'none';
+    document.getElementById('authGate').style.display = 'none';
+
+    const appShell = document.getElementById('appShell');
+    appShell.style.display = 'flex';
+
+    // Populate user pill
+    document.getElementById('userName').textContent = userInfo.name || userInfo.email;
+    const avatarEl = document.getElementById('userAvatar');
+    if (userInfo.picture) {
+      avatarEl.src = userInfo.picture;
+      avatarEl.style.display = '';
+    }
+  }
+
+  // Legacy GSI callback (kept for compatibility, not used with custom button)
   function handleGoogleCredential(response) {
     const credential = response.credential;
-
-    // Decode JWT payload (base64url)
     try {
       const payloadBase64 = credential.split('.')[1];
-      // base64url → base64
       const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(
         atob(base64).split('').map(c =>
@@ -1128,29 +1215,11 @@
         ).join('')
       );
       const payload = JSON.parse(jsonPayload);
-      const email = payload.email || '';
-
-      if (email.toLowerCase() !== ALLOWED_EMAIL.toLowerCase()) {
-        document.getElementById('authDenied').style.display = 'block';
-        google.accounts.id.disableAutoSelect();
-        return;
-      }
-
-      // Authorized — show app
-      document.getElementById('authDenied').style.display = 'none';
-      document.getElementById('authGate').style.display = 'none';
-
-      const appShell = document.getElementById('appShell');
-      appShell.style.display = 'flex';
-
-      // Populate user pill
-      document.getElementById('userName').textContent = payload.name || email;
-      const avatarEl = document.getElementById('userAvatar');
-      if (payload.picture) {
-        avatarEl.src = payload.picture;
-        avatarEl.style.display = '';
-      }
-
+      handleUserInfo({
+        email:   payload.email,
+        name:    payload.name,
+        picture: payload.picture
+      });
     } catch (e) {
       document.getElementById('authDenied').textContent = 'Sign-in error. Please try again.';
       document.getElementById('authDenied').style.display = 'block';
@@ -1158,16 +1227,13 @@
   }
 
   function signOut() {
-    google.accounts.id.disableAutoSelect();
+    sessionStorage.removeItem('hc_userinfo');
+    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+      google.accounts.id.disableAutoSelect();
+    }
     document.getElementById('appShell').style.display = 'none';
     document.getElementById('authGate').style.display = 'flex';
     document.getElementById('authDenied').style.display = 'none';
-    // Re-render sign-in button (GSI may have removed it)
-    document.getElementById('gSignInBtn').innerHTML = '';
-    google.accounts.id.renderButton(
-      document.getElementById('gSignInBtn'),
-      { theme: 'filled_black', size: 'large', shape: 'pill', width: 280, text: 'signin_with' }
-    );
   }
 
   // Wait for GSI library to load
@@ -1225,7 +1291,7 @@
 
     try {
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/heroic_entries?select=id,title,entry_type,module_id,lesson_group_id,tags,created_at,ai_context_weight&order=created_at.desc&limit=500`,
+        `${SUPABASE_URL}/rest/v1/heroic_entries?select=id,title,entry_type,tags,created_at,ai_context_weight,heroic_modules(number,title),heroic_lesson_groups(number,title)&order=created_at.desc&limit=500`,
         {
           headers: {
             'apikey': SUPABASE_ANON_KEY,
@@ -1241,6 +1307,7 @@
 
       allEntries = await res.json();
       libraryLoaded = true;
+      populateModuleFilter();
       filterLibrary();
 
     } catch (err) {
@@ -1249,17 +1316,52 @@
     }
   }
 
+  function populateModuleFilter() {
+    const seen = new Map();
+    allEntries.forEach(e => {
+      const mod = e.heroic_modules;
+      if (mod && mod.number != null && !seen.has(mod.number)) {
+        seen.set(mod.number, mod.title || '');
+      }
+    });
+
+    // Sort by number (numeric sort)
+    const sorted = Array.from(seen.entries()).sort((a, b) => {
+      const an = parseFloat(a[0]);
+      const bn = parseFloat(b[0]);
+      return an - bn;
+    });
+
+    const sel = document.getElementById('libraryModuleFilter');
+    // Preserve current value if possible
+    const currentVal = sel.value;
+    sel.innerHTML = '<option value="">All modules</option>';
+    sorted.forEach(([num, title]) => {
+      const opt = document.createElement('option');
+      opt.value = String(num);
+      opt.textContent = `Module ${num}${title ? ' — ' + title : ''}`;
+      sel.appendChild(opt);
+    });
+    // Restore selection if still valid
+    if (currentVal) sel.value = currentVal;
+  }
+
   function filterLibrary() {
-    const query     = (document.getElementById('librarySearch').value || '').toLowerCase().trim();
+    const query      = (document.getElementById('librarySearch').value || '').toLowerCase().trim();
     const typeFilter = document.getElementById('libraryTypeFilter').value;
+    const modFilter  = document.getElementById('libraryModuleFilter').value;
 
     let filtered = allEntries.filter(e => {
       if (typeFilter && e.entry_type !== typeFilter) return false;
+      if (modFilter && String(e.heroic_modules?.number) !== modFilter) return false;
       if (!query) return true;
       const haystack = [
         e.title || '',
         e.entry_type || '',
-        ...(e.tags || [])
+        ...(e.tags || []),
+        e.heroic_modules?.title || '',
+        e.heroic_modules?.number != null ? String(e.heroic_modules.number) : '',
+        e.heroic_lesson_groups?.title || ''
       ].join(' ').toLowerCase();
       return haystack.includes(query);
     });
@@ -1289,6 +1391,25 @@
     const date = e.created_at
       ? new Date(e.created_at).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' })
       : '—';
+
+    // Module + lesson group info
+    let moduleInfoHtml = '';
+    const modNum   = e.heroic_modules?.number;
+    const modTitle = e.heroic_modules?.title;
+    const lgNum    = e.heroic_lesson_groups?.number;
+    const lgTitle  = e.heroic_lesson_groups?.title;
+
+    const modulePart     = modNum != null ? `Module ${escHtml(String(modNum))}${modTitle ? ' \u2014 ' + escHtml(modTitle) : ''}` : '';
+    const lgPart         = lgNum  != null ? `${escHtml(String(lgNum))}${lgTitle ? ' ' + escHtml(lgTitle) : ''}` : '';
+
+    if (modulePart || lgPart) {
+      moduleInfoHtml = `<div class="entry-module-info">`;
+      if (modulePart) moduleInfoHtml += modulePart;
+      if (modulePart && lgPart) moduleInfoHtml += ` <span class="entry-meta-sep">&middot;</span> `;
+      if (lgPart) moduleInfoHtml += lgPart;
+      moduleInfoHtml += `</div>`;
+    }
+
     const tagsHtml = (e.tags && e.tags.length)
       ? `<div class="entry-tags">${e.tags.map(t => `<span class="entry-tag">#${escHtml(t)}</span>`).join('')}</div>`
       : '';
@@ -1300,6 +1421,7 @@
             <span class="entry-type-badge ${badgeClass}">${escHtml(typeLabel)}</span>
             <span class="entry-title">${escHtml(e.title || 'Untitled')}</span>
           </div>
+          ${moduleInfoHtml}
           <div class="entry-meta">
             <span>${escHtml(date)}</span>
             ${e.ai_context_weight != null ? `<span class="entry-meta-sep">·</span><span>weight ${e.ai_context_weight}/10</span>` : ''}
@@ -1342,7 +1464,9 @@
           method: 'DELETE',
           headers: {
             'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
           }
         }
       );
