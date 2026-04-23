@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Heroic Coach — Entry Form</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     /* ── Base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,6 +20,7 @@
       --text-dim: #8888a8;
       --green: #10b981;
       --red: #ef4444;
+      --blue: #3b82f6;
       --radius: 10px;
       --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
@@ -28,33 +30,198 @@
       color: var(--text);
       font-family: var(--font);
       min-height: 100vh;
+    }
+
+    /* ══════════════════════════════════════
+       AUTH GATE
+    ══════════════════════════════════════ */
+    #authGate {
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+
+    #authGate .auth-logo {
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+
+    #authGate .auth-tagline {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      margin-bottom: 2.5rem;
+    }
+
+    #authGate .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    #authGate .auth-card h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    #authGate .auth-card p {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    #gSignInBtn {
+      width: 100%;
+    }
+
+    #authDenied {
+      display: none;
+      color: var(--red);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.6rem 1rem;
+      background: #ef444418;
+      border: 1px solid var(--red);
+      border-radius: 7px;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* ══════════════════════════════════════
+       MAIN APP
+    ══════════════════════════════════════ */
+    #appShell {
+      display: none;
       flex-direction: column;
       align-items: center;
       padding: 2rem 1rem 4rem;
     }
 
-    /* ── Header ── */
-    header {
-      text-align: center;
-      margin-bottom: 2.5rem;
+    /* ── Top bar ── */
+    .top-bar {
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
     }
-    header h1 {
-      font-size: 1.5rem;
+
+    .top-bar-left h1 {
+      font-size: 1.35rem;
       font-weight: 700;
       letter-spacing: -0.02em;
       color: var(--accent);
     }
-    header p {
-      font-size: 0.85rem;
+
+    .top-bar-left p {
+      font-size: 0.78rem;
       color: var(--text-dim);
-      margin-top: 0.4rem;
+      margin-top: 0.2rem;
     }
+
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .user-pill img {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+    }
+
+    .btn-signout {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      border-radius: 6px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-signout:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    /* ── App tabs ── */
+    .app-tabs {
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      gap: 4px;
+      margin-bottom: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 4px;
+    }
+
+    .app-tab {
+      flex: 1;
+      padding: 0.55rem 1rem;
+      border-radius: 6px;
+      border: none;
+      background: none;
+      color: var(--text-dim);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .app-tab.active {
+      background: var(--accent);
+      color: #0f0f13;
+    }
+
+    .app-tab:not(.active):hover {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    /* ── Tab panels ── */
+    .tab-panel { display: none; width: 100%; max-width: 720px; }
+    .tab-panel.active { display: block; }
+
+    /* ══════════════════════════════════════
+       LOG ENTRY PANEL (existing form)
+    ══════════════════════════════════════ */
 
     /* ── Progress bar ── */
     .progress-bar {
       width: 100%;
-      max-width: 640px;
       display: flex;
       gap: 6px;
       margin-bottom: 2rem;
@@ -76,7 +243,6 @@
       border-radius: var(--radius);
       padding: 2rem;
       width: 100%;
-      max-width: 640px;
     }
 
     .card h2 {
@@ -303,6 +469,278 @@
     .btn-ghost:hover { border-color: var(--text-dim); color: var(--text); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.25rem 0;
+    }
+
+    /* ── Step visibility ── */
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    /* ══════════════════════════════════════
+       LIBRARY PANEL
+    ══════════════════════════════════════ */
+    .library-toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .library-search {
+      flex: 1;
+      min-width: 200px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      padding: 0.65rem 0.85rem 0.65rem 2.4rem;
+      outline: none;
+      transition: border-color 0.2s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238888a8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 0.75rem center;
+      background-size: 1rem;
+    }
+    .library-search:focus { border-color: var(--accent); }
+
+    .library-filter {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.88rem;
+      padding: 0.65rem 0.85rem;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      transition: border-color 0.2s;
+    }
+    .library-filter:focus { border-color: var(--accent); }
+
+    .library-refresh {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text-dim);
+      padding: 0.65rem 0.85rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: border-color 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    .library-refresh:hover { border-color: var(--accent); color: var(--accent); }
+
+    .library-count {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+      padding: 0 0.25rem;
+    }
+
+    /* Entry list */
+    .entry-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .entry-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      transition: border-color 0.2s;
+    }
+    .entry-card:hover { border-color: #3e3e52; }
+
+    .entry-card-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .entry-card-top {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.35rem;
+    }
+
+    .entry-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .entry-type-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .badge-reflection       { background: #312e81; color: #a5b4fc; }
+    .badge-worksheet        { background: #1e3a5f; color: #7dd3fc; }
+    .badge-philosophers_note { background: #14532d; color: #86efac; }
+    .badge-theory           { background: #2d1b69; color: #c4b5fd; }
+    .badge-principle        { background: #451a03; color: var(--accent); }
+
+    .entry-meta {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .entry-meta-sep { color: #3e3e52; }
+
+    .entry-tags {
+      margin-top: 0.4rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .entry-tag {
+      font-size: 0.68rem;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid #92400e55;
+      border-radius: 4px;
+      padding: 1px 6px;
+    }
+
+    .entry-delete-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      border-radius: 6px;
+      padding: 0.4rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .entry-delete-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+      background: #ef444412;
+    }
+    .entry-delete-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Library states */
+    .library-loading,
+    .library-empty,
+    .library-error {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-dim);
+      font-size: 0.88rem;
+    }
+    .library-error { color: var(--red); }
+
+    .library-spinner {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-bottom: 0.75rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Delete confirm modal ── */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+    .modal h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.6rem;
+    }
+    .modal p {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .btn-danger {
+      background: var(--red);
+      color: #fff;
+      padding: 0.65rem 1.4rem;
+      border-radius: 7px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-danger:hover { opacity: 0.85; }
+    .btn-cancel {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 0.65rem 1.4rem;
+      border-radius: 7px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-cancel:hover { border-color: var(--text-dim); color: var(--text); }
+
     /* ── Toast ── */
     #toast {
       position: fixed;
@@ -317,7 +755,7 @@
       opacity: 0;
       transition: opacity 0.3s, transform 0.3s;
       pointer-events: none;
-      z-index: 999;
+      z-index: 1100;
       white-space: nowrap;
     }
     #toast.show {
@@ -325,278 +763,632 @@
       transform: translateX(-50%) translateY(0);
     }
     #toast.success { border-color: var(--green); color: var(--green); }
-    #toast.error { border-color: var(--red); color: var(--red); }
-
-    /* ── Divider ── */
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 1.25rem 0;
-    }
-
-    /* ── Step visibility ── */
-    .step-panel { display: none; }
-    .step-panel.active { display: block; }
+    #toast.error   { border-color: var(--red);   color: var(--red);   }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>Heroic Coach</h1>
-  <p>Log a lesson, reflection, or worksheet answer</p>
-</header>
-
-<div class="progress-bar" id="progressBar">
-  <div class="step active" id="pb1"></div>
-  <div class="step" id="pb2"></div>
-  <div class="step" id="pb3"></div>
+<!-- ══════════════════════════════════════
+     AUTH GATE
+══════════════════════════════════════ -->
+<div id="authGate">
+  <div class="auth-logo">Heroic Coach</div>
+  <div class="auth-tagline">Mastery Series — Personal Knowledge Base</div>
+  <div class="auth-card">
+    <h2>Sign in to continue</h2>
+    <p>Access is restricted to authorized users. Sign in with your Google account to proceed.</p>
+    <div id="gSignInBtn"></div>
+    <div id="authDenied">Access denied. This tool is private.</div>
+  </div>
 </div>
 
-<div class="card">
+<!-- ══════════════════════════════════════
+     MAIN APP (hidden until auth)
+══════════════════════════════════════ -->
+<div id="appShell">
 
-  <!-- ══════════════════════════════════════
-       STEP 1 — Entry type + module
-  ══════════════════════════════════════ -->
-  <div class="step-panel active" id="step1">
-    <h2>What are you logging?</h2>
-    <p class="subtitle">Heroic Coach · Mastery Series — select a type and locate it in the curriculum.</p>
-
-    <div class="field">
-      <label>Entry type <span class="required">*</span></label>
-      <div class="type-grid" id="typeGrid">
-        <div class="type-tile" data-type="reflection">
-          <div class="icon">🪞</div>
-          <div class="label">Reflection</div>
-          <div class="desc">Freeform thought, meditation, or insight from the program</div>
-        </div>
-        <div class="type-tile" data-type="worksheet">
-          <div class="icon">📋</div>
-          <div class="label">Worksheet</div>
-          <div class="desc">One or more prompts with your written answers</div>
-        </div>
-        <div class="type-tile" data-type="philosophers_note">
-          <div class="icon">📖</div>
-          <div class="label">Philosopher's Note</div>
-          <div class="desc">Key ideas from a book summary + your reaction</div>
-        </div>
-        <div class="type-tile" data-type="theory">
-          <div class="icon">🧠</div>
-          <div class="label">Theory / Concept</div>
-          <div class="desc">A framework from the program explained in your words</div>
-        </div>
-        <div class="type-tile" data-type="principle" style="grid-column: span 2;">
-          <div class="icon">⚡</div>
-          <div class="label">Personal Principle</div>
-          <div class="desc">An identity-level commitment — the AI weights these most heavily</div>
-        </div>
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <h1>Heroic Coach</h1>
+      <p>Log a lesson, reflection, or worksheet answer</p>
+    </div>
+    <div class="top-bar-right">
+      <div class="user-pill" id="userPill">
+        <img id="userAvatar" src="" alt="" style="display:none" />
+        <span id="userName"></span>
       </div>
+      <button class="btn-signout" onclick="signOut()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- App-level tabs -->
+  <div class="app-tabs">
+    <button class="app-tab active" id="tabLogEntry"   onclick="switchAppTab('logEntry')">Log Entry</button>
+    <button class="app-tab"        id="tabLibrary"    onclick="switchAppTab('library')">Library</button>
+  </div>
+
+  <!-- ── LOG ENTRY panel ── -->
+  <div class="tab-panel active" id="panelLogEntry">
+
+    <div class="progress-bar" id="progressBar">
+      <div class="step active" id="pb1"></div>
+      <div class="step" id="pb2"></div>
+      <div class="step" id="pb3"></div>
     </div>
 
-    <div class="field">
-      <label>Module <span class="required">*</span></label>
-      <select id="moduleSelect" onchange="onModuleChange()">
-        <option value="">— Select module —</option>
-        <option value="0">Module 0 — Optimize = Optimist = Best = Eudaimon = Hero</option>
-        <option value="1">Module 1 — Eudaimonology</option>
-        <option value="2">Module 2 — Heroology</option>
-        <option value="3">Module 3 — The Big Three (×2)</option>
-        <option value="4">Module 4 — Carpe Diem</option>
-        <option value="5">Module 5 — Algorithms</option>
-        <option value="6">Module 6 — Fundamentals</option>
-        <option value="7">Module 7 — Optimist U</option>
-        <option value="Pre">Pre-Reading — Core Wisdom</option>
+    <div class="card">
+
+      <!-- STEP 1 — Entry type + module -->
+      <div class="step-panel active" id="step1">
+        <h2>What are you logging?</h2>
+        <p class="subtitle">Heroic Coach · Mastery Series — select a type and locate it in the curriculum.</p>
+
+        <div class="field">
+          <label>Entry type <span class="required">*</span></label>
+          <div class="type-grid" id="typeGrid">
+            <div class="type-tile" data-type="reflection">
+              <div class="icon">🪞</div>
+              <div class="label">Reflection</div>
+              <div class="desc">Freeform thought, meditation, or insight from the program</div>
+            </div>
+            <div class="type-tile" data-type="worksheet">
+              <div class="icon">📋</div>
+              <div class="label">Worksheet</div>
+              <div class="desc">One or more prompts with your written answers</div>
+            </div>
+            <div class="type-tile" data-type="philosophers_note">
+              <div class="icon">📖</div>
+              <div class="label">Philosopher's Note</div>
+              <div class="desc">Key ideas from a book summary + your reaction</div>
+            </div>
+            <div class="type-tile" data-type="theory">
+              <div class="icon">🧠</div>
+              <div class="label">Theory / Concept</div>
+              <div class="desc">A framework from the program explained in your words</div>
+            </div>
+            <div class="type-tile" data-type="principle" style="grid-column: span 2;">
+              <div class="icon">⚡</div>
+              <div class="label">Personal Principle</div>
+              <div class="desc">An identity-level commitment — the AI weights these most heavily</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Module <span class="required">*</span></label>
+          <select id="moduleSelect" onchange="onModuleChange()">
+            <option value="">— Select module —</option>
+            <option value="0">Module 0 — Optimize = Optimist = Best = Eudaimon = Hero</option>
+            <option value="1">Module 1 — Eudaimonology</option>
+            <option value="2">Module 2 — Heroology</option>
+            <option value="3">Module 3 — The Big Three (×2)</option>
+            <option value="4">Module 4 — Carpe Diem</option>
+            <option value="5">Module 5 — Algorithms</option>
+            <option value="6">Module 6 — Fundamentals</option>
+            <option value="7">Module 7 — Optimist U</option>
+            <option value="Pre">Pre-Reading — Core Wisdom</option>
+          </select>
+        </div>
+
+        <div class="field" id="lessonGroupField" style="display:none">
+          <label>Lesson group <span class="required">*</span></label>
+          <select id="lessonGroupSelect" onchange="validateStep1()">
+            <option value="">— Select lesson group —</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Entry title <span class="required">*</span></label>
+          <input type="text" id="entryTitle" placeholder="e.g. On what makes a good day" />
+        </div>
+
+        <div class="btn-row">
+          <div></div>
+          <button class="btn btn-primary" id="step1Next" disabled onclick="goToStep(2)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2 — Type-specific fields -->
+      <div class="step-panel" id="step2">
+        <h2 id="step2Title">Details</h2>
+        <p class="subtitle" id="step2Subtitle"></p>
+
+        <!-- REFLECTION fields -->
+        <div id="fields-reflection">
+          <div class="field">
+            <label>Your reflection <span class="required">*</span></label>
+            <textarea id="reflection-body" rows="8" placeholder="Write your reflection here..."></textarea>
+          </div>
+          <div class="field">
+            <label>Source quote <span style="font-weight:400; color: var(--text-dim)">(optional)</span></label>
+            <input type="text" id="reflection-quote" placeholder="A quote that sparked this reflection" />
+          </div>
+        </div>
+
+        <!-- WORKSHEET fields -->
+        <div id="fields-worksheet" style="display:none">
+          <div class="field">
+            <label>Worksheet context <span style="font-weight:400; color: var(--text-dim)">(optional)</span></label>
+            <textarea id="worksheet-summary" rows="3" placeholder="Brief description of what this worksheet is about..."></textarea>
+          </div>
+          <hr class="divider" />
+          <div class="field">
+            <label>Questions & Answers <span class="required">*</span></label>
+            <div class="qa-list" id="qaList"></div>
+            <button class="add-qa-btn" onclick="addQAPair()">+ Add question</button>
+          </div>
+        </div>
+
+        <!-- PHILOSOPHER'S NOTE fields -->
+        <div id="fields-philosophers_note" style="display:none">
+          <div class="field">
+            <label>Book title <span class="required">*</span></label>
+            <input type="text" id="pn-book-title" placeholder="e.g. Meditations" />
+          </div>
+          <div class="field">
+            <label>Author</label>
+            <input type="text" id="pn-book-author" placeholder="e.g. Marcus Aurelius" />
+          </div>
+          <div class="field">
+            <label>Key ideas from the note</label>
+            <textarea id="pn-key-ideas" rows="5" placeholder="Bullet the main ideas, one per line..."></textarea>
+            <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px">Each line will be stored as a separate idea chip.</div>
+          </div>
+          <div class="field">
+            <label>Source quote</label>
+            <input type="text" id="pn-quote" placeholder="A quote that stuck with you" />
+          </div>
+          <div class="field">
+            <label>Your reflection <span class="required">*</span></label>
+            <textarea id="pn-reflection" rows="5" placeholder="What does this mean for you personally?"></textarea>
+          </div>
+        </div>
+
+        <!-- THEORY fields -->
+        <div id="fields-theory" style="display:none">
+          <div class="field">
+            <label>Concept summary <span style="font-weight:400; color:var(--text-dim)">(brief)</span></label>
+            <input type="text" id="theory-summary" placeholder="e.g. The Big 3 — three daily commitments that define a Masterpiece Day" />
+          </div>
+          <div class="field">
+            <label>Explanation in your own words <span class="required">*</span></label>
+            <textarea id="theory-body" rows="7" placeholder="Explain the concept as if teaching it to someone..."></textarea>
+          </div>
+          <div class="field">
+            <label>Key ideas</label>
+            <textarea id="theory-key-ideas" rows="4" placeholder="List the core principles or sub-ideas, one per line..."></textarea>
+          </div>
+          <div class="field">
+            <label>Source quote</label>
+            <input type="text" id="theory-quote" placeholder="Relevant Brian Johnson quote or program line" />
+          </div>
+        </div>
+
+        <!-- PRINCIPLE fields -->
+        <div id="fields-principle" style="display:none">
+          <div class="field">
+            <label>The principle <span class="required">*</span></label>
+            <textarea id="principle-statement" rows="3" placeholder="Write as a first-person declaration. e.g. I am someone who protects deep work before anything else in the morning."></textarea>
+            <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px">Write it as a present-tense identity statement, not a goal.</div>
+          </div>
+          <div class="field">
+            <label>Category</label>
+            <select id="principle-category">
+              <option value="">— Optional —</option>
+              <option>Identity</option>
+              <option>Energy</option>
+              <option>Work</option>
+              <option>Love</option>
+              <option>Emotions</option>
+              <option>Purpose</option>
+              <option>Relationships</option>
+              <option>Health</option>
+              <option>Mind</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Context / why this matters to you</label>
+            <textarea id="principle-body" rows="4" placeholder="What experience or insight led you to this principle?"></textarea>
+          </div>
+          <div class="field">
+            <label>Source quote</label>
+            <input type="text" id="principle-quote" placeholder="Quote that crystallized this" />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="goToStep(1)">← Back</button>
+          <button class="btn btn-primary" id="step2Next" onclick="goToStep(3)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3 — Tags, AI weight, review & save -->
+      <div class="step-panel" id="step3">
+        <h2>Finishing touches</h2>
+        <p class="subtitle">Tags and AI weighting help the agent find and use this entry at the right moment.</p>
+
+        <div class="field">
+          <label>Tags</label>
+          <div class="tag-input-wrapper" id="tagWrapper" onclick="document.getElementById('tagInput').focus()">
+            <input class="tag-input" id="tagInput" type="text" placeholder="Type a tag, press Enter or comma" />
+          </div>
+          <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px">e.g. energy, identity, Big 3, morning routine</div>
+        </div>
+
+        <div class="field">
+          <label>AI context weight</label>
+          <div class="weight-row">
+            <input type="range" id="aiWeight" min="1" max="10" value="5" oninput="document.getElementById('weightVal').textContent=this.value" />
+            <span class="weight-value" id="weightVal">5</span>
+          </div>
+          <div class="weight-labels">
+            <span>1 — light background</span>
+            <span>10 — always surface</span>
+          </div>
+        </div>
+
+        <hr class="divider" />
+        <div id="reviewSummary" style="font-size:0.82rem; color:var(--text-dim); line-height:1.7;"></div>
+
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="goToStep(2)">← Back</button>
+          <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()">Save entry</button>
+        </div>
+      </div>
+
+    </div><!-- /card -->
+  </div><!-- /panelLogEntry -->
+
+  <!-- ── LIBRARY panel ── -->
+  <div class="tab-panel" id="panelLibrary">
+
+    <div class="library-toolbar">
+      <input class="library-search" type="text" id="librarySearch" placeholder="Search titles, tags, modules…" oninput="filterLibrary()" />
+      <select class="library-filter" id="libraryTypeFilter" onchange="filterLibrary()">
+        <option value="">All types</option>
+        <option value="reflection">Reflection</option>
+        <option value="worksheet">Worksheet</option>
+        <option value="philosophers_note">Philosopher's Note</option>
+        <option value="theory">Theory / Concept</option>
+        <option value="principle">Personal Principle</option>
       </select>
+      <button class="library-refresh" onclick="loadLibrary()">Refresh</button>
+      <span class="library-count" id="libraryCount"></span>
     </div>
 
-    <div class="field" id="lessonGroupField" style="display:none">
-      <label>Lesson group <span class="required">*</span></label>
-      <select id="lessonGroupSelect" onchange="validateStep1()">
-        <option value="">— Select lesson group —</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Entry title <span class="required">*</span></label>
-      <input type="text" id="entryTitle" placeholder="e.g. On what makes a good day" />
-    </div>
-
-    <div class="btn-row">
-      <div></div>
-      <button class="btn btn-primary" id="step1Next" disabled onclick="goToStep(2)">Continue →</button>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════
-       STEP 2 — Type-specific fields
-  ══════════════════════════════════════ -->
-  <div class="step-panel" id="step2">
-    <h2 id="step2Title">Details</h2>
-    <p class="subtitle" id="step2Subtitle"></p>
-
-    <!-- REFLECTION fields -->
-    <div id="fields-reflection">
-      <div class="field">
-        <label>Your reflection <span class="required">*</span></label>
-        <textarea id="reflection-body" rows="8" placeholder="Write your reflection here..."></textarea>
-      </div>
-      <div class="field">
-        <label>Source quote <span style="font-weight:400; color: var(--text-dim)">(optional)</span></label>
-        <input type="text" id="reflection-quote" placeholder="A quote that sparked this reflection" />
+    <div id="libraryContent">
+      <div class="library-loading">
+        <div class="library-spinner"></div><br/>
+        Loading entries…
       </div>
     </div>
 
-    <!-- WORKSHEET fields -->
-    <div id="fields-worksheet" style="display:none">
-      <div class="field">
-        <label>Worksheet context <span style="font-weight:400; color: var(--text-dim)">(optional)</span></label>
-        <textarea id="worksheet-summary" rows="3" placeholder="Brief description of what this worksheet is about..."></textarea>
-      </div>
-      <hr class="divider" />
-      <div class="field">
-        <label>Questions & Answers <span class="required">*</span></label>
-        <div class="qa-list" id="qaList"></div>
-        <button class="add-qa-btn" onclick="addQAPair()">+ Add question</button>
-      </div>
-    </div>
+  </div><!-- /panelLibrary -->
 
-    <!-- PHILOSOPHER'S NOTE fields -->
-    <div id="fields-philosophers_note" style="display:none">
-      <div class="field">
-        <label>Book title <span class="required">*</span></label>
-        <input type="text" id="pn-book-title" placeholder="e.g. Meditations" />
-      </div>
-      <div class="field">
-        <label>Author</label>
-        <input type="text" id="pn-book-author" placeholder="e.g. Marcus Aurelius" />
-      </div>
-      <div class="field">
-        <label>Key ideas from the note</label>
-        <textarea id="pn-key-ideas" rows="5" placeholder="Bullet the main ideas, one per line..."></textarea>
-        <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px">Each line will be stored as a separate idea chip.</div>
-      </div>
-      <div class="field">
-        <label>Source quote</label>
-        <input type="text" id="pn-quote" placeholder="A quote that stuck with you" />
-      </div>
-      <div class="field">
-        <label>Your reflection <span class="required">*</span></label>
-        <textarea id="pn-reflection" rows="5" placeholder="What does this mean for you personally?"></textarea>
-      </div>
-    </div>
+</div><!-- /appShell -->
 
-    <!-- THEORY fields -->
-    <div id="fields-theory" style="display:none">
-      <div class="field">
-        <label>Concept summary <span style="font-weight:400; color:var(--text-dim)">(brief)</span></label>
-        <input type="text" id="theory-summary" placeholder="e.g. The Big 3 — three daily commitments that define a Masterpiece Day" />
-      </div>
-      <div class="field">
-        <label>Explanation in your own words <span class="required">*</span></label>
-        <textarea id="theory-body" rows="7" placeholder="Explain the concept as if teaching it to someone..."></textarea>
-      </div>
-      <div class="field">
-        <label>Key ideas</label>
-        <textarea id="theory-key-ideas" rows="4" placeholder="List the core principles or sub-ideas, one per line..."></textarea>
-      </div>
-      <div class="field">
-        <label>Source quote</label>
-        <input type="text" id="theory-quote" placeholder="Relevant Brian Johnson quote or program line" />
-      </div>
-    </div>
-
-    <!-- PRINCIPLE fields -->
-    <div id="fields-principle" style="display:none">
-      <div class="field">
-        <label>The principle <span class="required">*</span></label>
-        <textarea id="principle-statement" rows="3" placeholder="Write as a first-person declaration. e.g. I am someone who protects deep work before anything else in the morning."></textarea>
-        <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px">Write it as a present-tense identity statement, not a goal.</div>
-      </div>
-      <div class="field">
-        <label>Category</label>
-        <select id="principle-category">
-          <option value="">— Optional —</option>
-          <option>Identity</option>
-          <option>Energy</option>
-          <option>Work</option>
-          <option>Love</option>
-          <option>Emotions</option>
-          <option>Purpose</option>
-          <option>Relationships</option>
-          <option>Health</option>
-          <option>Mind</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Context / why this matters to you</label>
-        <textarea id="principle-body" rows="4" placeholder="What experience or insight led you to this principle?"></textarea>
-      </div>
-      <div class="field">
-        <label>Source quote</label>
-        <input type="text" id="principle-quote" placeholder="Quote that crystallized this" />
-      </div>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="goToStep(1)">← Back</button>
-      <button class="btn btn-primary" id="step2Next" onclick="goToStep(3)">Continue →</button>
+<!-- Delete confirm modal -->
+<div class="modal-backdrop" id="deleteModal">
+  <div class="modal">
+    <h3>Delete this entry?</h3>
+    <p id="deleteModalText">This will permanently remove the entry and all associated Q&amp;A pairs. This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">Delete</button>
     </div>
   </div>
-
-  <!-- ══════════════════════════════════════
-       STEP 3 — Tags, AI weight, review & save
-  ══════════════════════════════════════ -->
-  <div class="step-panel" id="step3">
-    <h2>Finishing touches</h2>
-    <p class="subtitle">Tags and AI weighting help the agent find and use this entry at the right moment.</p>
-
-    <div class="field">
-      <label>Tags</label>
-      <div class="tag-input-wrapper" id="tagWrapper" onclick="document.getElementById('tagInput').focus()">
-        <input class="tag-input" id="tagInput" type="text" placeholder="Type a tag, press Enter or comma" />
-      </div>
-      <div style="font-size:0.72rem; color:var(--text-dim); margin-top:4px">e.g. energy, identity, Big 3, morning routine</div>
-    </div>
-
-    <div class="field">
-      <label>AI context weight</label>
-      <div class="weight-row">
-        <input type="range" id="aiWeight" min="1" max="10" value="5" oninput="document.getElementById('weightVal').textContent=this.value" />
-        <span class="weight-value" id="weightVal">5</span>
-      </div>
-      <div class="weight-labels">
-        <span>1 — light background</span>
-        <span>10 — always surface</span>
-      </div>
-    </div>
-
-    <hr class="divider" />
-    <div id="reviewSummary" style="font-size:0.82rem; color:var(--text-dim); line-height:1.7;"></div>
-
-    <div class="btn-row">
-      <button class="btn btn-ghost" onclick="goToStep(2)">← Back</button>
-      <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()">Save entry</button>
-    </div>
-  </div>
-
-</div><!-- /card -->
+</div>
 
 <div id="toast"></div>
 
-<!-- ══════════════════════════════════════════════════
-     CONFIG — Replace with your Supabase project details
-══════════════════════════════════════════════════ -->
 <script>
-  const SUPABASE_URL = 'https://pfvbfpyxchglxveyjsge.supabase.co';
+  /* ══════════════════════════════════════════════════
+     CONFIG
+  ══════════════════════════════════════════════════ */
+  const SUPABASE_URL     = 'https://pfvbfpyxchglxveyjsge.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_eOZHAg_c0og_G5I0VIM60g_bc8ziADW';
+  const GOOGLE_CLIENT_ID  = '1089976022002-12o5qu5scmm7vugc6sh8s5rpt4e5nfke.apps.googleusercontent.com';
+  const ALLOWED_EMAIL     = 'adrianvoncodes@gmail.com';
 
-  // ── State ──────────────────────────────────────
-  let currentStep = 1;
+  /* ══════════════════════════════════════════════════
+     AUTH — Google Identity Services (GSI)
+  ══════════════════════════════════════════════════ */
+  function initGoogleAuth() {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleCredential,
+      auto_select: false,
+      cancel_on_tap_outside: true
+    });
+
+    google.accounts.id.renderButton(
+      document.getElementById('gSignInBtn'),
+      {
+        theme: 'filled_black',
+        size: 'large',
+        shape: 'pill',
+        width: 280,
+        text: 'signin_with'
+      }
+    );
+  }
+
+  // Called when GSI returns a credential
+  function handleGoogleCredential(response) {
+    const credential = response.credential;
+
+    // Decode JWT payload (base64url)
+    try {
+      const payloadBase64 = credential.split('.')[1];
+      // base64url → base64
+      const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64).split('').map(c =>
+          '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        ).join('')
+      );
+      const payload = JSON.parse(jsonPayload);
+      const email = payload.email || '';
+
+      if (email.toLowerCase() !== ALLOWED_EMAIL.toLowerCase()) {
+        document.getElementById('authDenied').style.display = 'block';
+        google.accounts.id.disableAutoSelect();
+        return;
+      }
+
+      // Authorized — show app
+      document.getElementById('authDenied').style.display = 'none';
+      document.getElementById('authGate').style.display = 'none';
+
+      const appShell = document.getElementById('appShell');
+      appShell.style.display = 'flex';
+
+      // Populate user pill
+      document.getElementById('userName').textContent = payload.name || email;
+      const avatarEl = document.getElementById('userAvatar');
+      if (payload.picture) {
+        avatarEl.src = payload.picture;
+        avatarEl.style.display = '';
+      }
+
+    } catch (e) {
+      document.getElementById('authDenied').textContent = 'Sign-in error. Please try again.';
+      document.getElementById('authDenied').style.display = 'block';
+    }
+  }
+
+  function signOut() {
+    google.accounts.id.disableAutoSelect();
+    document.getElementById('appShell').style.display = 'none';
+    document.getElementById('authGate').style.display = 'flex';
+    document.getElementById('authDenied').style.display = 'none';
+    // Re-render sign-in button (GSI may have removed it)
+    document.getElementById('gSignInBtn').innerHTML = '';
+    google.accounts.id.renderButton(
+      document.getElementById('gSignInBtn'),
+      { theme: 'filled_black', size: 'large', shape: 'pill', width: 280, text: 'signin_with' }
+    );
+  }
+
+  // Wait for GSI library to load
+  window.addEventListener('load', () => {
+    if (typeof google !== 'undefined' && google.accounts) {
+      initGoogleAuth();
+    } else {
+      // GSI loads async — poll briefly
+      const interval = setInterval(() => {
+        if (typeof google !== 'undefined' && google.accounts) {
+          clearInterval(interval);
+          initGoogleAuth();
+        }
+      }, 100);
+    }
+  });
+
+  /* ══════════════════════════════════════════════════
+     APP TAB SWITCHING
+  ══════════════════════════════════════════════════ */
+  function switchAppTab(tab) {
+    document.getElementById('tabLogEntry').classList.toggle('active', tab === 'logEntry');
+    document.getElementById('tabLibrary').classList.toggle('active', tab === 'library');
+    document.getElementById('panelLogEntry').classList.toggle('active', tab === 'logEntry');
+    document.getElementById('panelLibrary').classList.toggle('active', tab === 'library');
+
+    if (tab === 'library' && !libraryLoaded) {
+      loadLibrary();
+    }
+  }
+
+  /* ══════════════════════════════════════════════════
+     LIBRARY
+  ══════════════════════════════════════════════════ */
+  let allEntries    = [];
+  let libraryLoaded = false;
+  let pendingDeleteId   = null;
+  let pendingDeleteTitle = '';
+
+  const TYPE_LABELS = {
+    reflection:        'Reflection',
+    worksheet:         'Worksheet',
+    philosophers_note: "Philosopher's Note",
+    theory:            'Theory / Concept',
+    principle:         'Personal Principle'
+  };
+
+  async function loadLibrary() {
+    libraryLoaded = false;
+    document.getElementById('libraryContent').innerHTML = `
+      <div class="library-loading">
+        <div class="library-spinner"></div><br/>Loading entries…
+      </div>`;
+    document.getElementById('libraryCount').textContent = '';
+
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/heroic_entries?select=id,title,entry_type,module_id,lesson_group_id,tags,created_at,ai_context_weight&order=created_at.desc&limit=500`,
+        {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        }
+      );
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `HTTP ${res.status}`);
+      }
+
+      allEntries = await res.json();
+      libraryLoaded = true;
+      filterLibrary();
+
+    } catch (err) {
+      document.getElementById('libraryContent').innerHTML = `
+        <div class="library-error">Failed to load entries: ${escHtml(err.message)}</div>`;
+    }
+  }
+
+  function filterLibrary() {
+    const query     = (document.getElementById('librarySearch').value || '').toLowerCase().trim();
+    const typeFilter = document.getElementById('libraryTypeFilter').value;
+
+    let filtered = allEntries.filter(e => {
+      if (typeFilter && e.entry_type !== typeFilter) return false;
+      if (!query) return true;
+      const haystack = [
+        e.title || '',
+        e.entry_type || '',
+        ...(e.tags || [])
+      ].join(' ').toLowerCase();
+      return haystack.includes(query);
+    });
+
+    renderLibrary(filtered);
+  }
+
+  function renderLibrary(entries) {
+    const count = entries.length;
+    const total = allEntries.length;
+    document.getElementById('libraryCount').textContent =
+      count === total ? `${total} entries` : `${count} of ${total}`;
+
+    if (count === 0) {
+      document.getElementById('libraryContent').innerHTML =
+        `<div class="library-empty">No entries match your search.</div>`;
+      return;
+    }
+
+    const html = entries.map(e => entryCardHTML(e)).join('');
+    document.getElementById('libraryContent').innerHTML = `<div class="entry-list">${html}</div>`;
+  }
+
+  function entryCardHTML(e) {
+    const typeLabel = TYPE_LABELS[e.entry_type] || e.entry_type;
+    const badgeClass = `badge-${e.entry_type}`;
+    const date = e.created_at
+      ? new Date(e.created_at).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' })
+      : '—';
+    const tagsHtml = (e.tags && e.tags.length)
+      ? `<div class="entry-tags">${e.tags.map(t => `<span class="entry-tag">#${escHtml(t)}</span>`).join('')}</div>`
+      : '';
+
+    return `
+      <div class="entry-card" id="ec-${e.id}">
+        <div class="entry-card-body">
+          <div class="entry-card-top">
+            <span class="entry-type-badge ${badgeClass}">${escHtml(typeLabel)}</span>
+            <span class="entry-title">${escHtml(e.title || 'Untitled')}</span>
+          </div>
+          <div class="entry-meta">
+            <span>${escHtml(date)}</span>
+            ${e.ai_context_weight != null ? `<span class="entry-meta-sep">·</span><span>weight ${e.ai_context_weight}/10</span>` : ''}
+          </div>
+          ${tagsHtml}
+        </div>
+        <button class="entry-delete-btn" onclick="openDeleteModal('${e.id}', ${JSON.stringify(escHtml(e.title || 'Untitled'))})">Delete</button>
+      </div>
+    `;
+  }
+
+  /* ── Delete flow ── */
+  function openDeleteModal(id, title) {
+    pendingDeleteId    = id;
+    pendingDeleteTitle = title;
+    document.getElementById('deleteModalText').textContent =
+      `"${title}" and all associated Q&A pairs will be permanently deleted. This cannot be undone.`;
+    document.getElementById('deleteModal').classList.add('open');
+  }
+
+  function closeDeleteModal() {
+    pendingDeleteId    = null;
+    pendingDeleteTitle = '';
+    document.getElementById('deleteModal').classList.remove('open');
+    document.getElementById('confirmDeleteBtn').disabled = false;
+    document.getElementById('confirmDeleteBtn').textContent = 'Delete';
+  }
+
+  async function confirmDelete() {
+    if (!pendingDeleteId) return;
+
+    const btn = document.getElementById('confirmDeleteBtn');
+    btn.disabled = true;
+    btn.textContent = 'Deleting…';
+
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/heroic_entries?id=eq.${encodeURIComponent(pendingDeleteId)}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        }
+      );
+
+      if (!res.ok && res.status !== 204) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `HTTP ${res.status}`);
+      }
+
+      // Remove from local cache and DOM
+      allEntries = allEntries.filter(e => e.id !== pendingDeleteId);
+      const card = document.getElementById(`ec-${pendingDeleteId}`);
+      if (card) card.remove();
+
+      // Update count
+      const count = document.querySelectorAll('.entry-card').length;
+      const total = allEntries.length;
+      document.getElementById('libraryCount').textContent =
+        `${count} of ${total} entries` ;
+      if (count === 0) {
+        document.getElementById('libraryContent').innerHTML =
+          `<div class="library-empty">No entries match your search.</div>`;
+      }
+
+      closeDeleteModal();
+      showToast('Entry deleted', 'success');
+
+    } catch (err) {
+      closeDeleteModal();
+      showToast(`Delete failed: ${err.message}`, 'error');
+    }
+  }
+
+  // Close modal on backdrop click
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+
+  /* ══════════════════════════════════════════════════
+     FORM — State
+  ══════════════════════════════════════════════════ */
+  let currentStep  = 1;
   let selectedType = null;
-  let tags = [];
-  let qaCounter = 0;
+  let tags         = [];
+  let qaCounter    = 0;
 
-  // ── Heroic Coach Mastery Series — hardcoded curriculum ──
-  // slug → array of { value, label } lesson groups
   const LESSON_GROUPS = {
     '0':   [{ value: '0',   label: '0 — Module Overview (15 big ideas, 9 practices)' }],
     '1':   [{ value: '1',   label: '1 — Eudaimonology (12 big ideas, 8 practices)' }],
@@ -635,17 +1427,20 @@
     'Pre': [{ value: 'Pre', label: 'Pre — Core Wisdom' }]
   };
 
-  // ── Init ───────────────────────────────────────
+  /* ══════════════════════════════════════════════════
+     FORM — Init
+  ══════════════════════════════════════════════════ */
   window.addEventListener('DOMContentLoaded', () => {
     setupTypeGrid();
     setupTagInput();
     validateStep1();
+    document.getElementById('entryTitle').addEventListener('input', validateStep1);
   });
 
-  // ── Module → lesson group cascade ─────────────
+  /* ── Module → lesson group cascade ── */
   function onModuleChange() {
-    const mod = document.getElementById('moduleSelect').value;
-    const lgField = document.getElementById('lessonGroupField');
+    const mod     = document.getElementById('moduleSelect').value;
+    const lgField  = document.getElementById('lessonGroupField');
     const lgSelect = document.getElementById('lessonGroupSelect');
 
     lgSelect.innerHTML = '<option value="">— Select lesson group —</option>';
@@ -653,7 +1448,6 @@
     if (mod && LESSON_GROUPS[mod]) {
       const groups = LESSON_GROUPS[mod];
       if (groups.length === 1) {
-        // Only one group — auto-select it and hide the dropdown
         const opt = document.createElement('option');
         opt.value = groups[0].value;
         opt.textContent = groups[0].label;
@@ -675,7 +1469,7 @@
     validateStep1();
   }
 
-  // ── Type tile selection ────────────────────────
+  /* ── Type tile selection ── */
   function setupTypeGrid() {
     document.querySelectorAll('.type-tile').forEach(tile => {
       tile.addEventListener('click', () => {
@@ -688,23 +1482,19 @@
   }
 
   function validateStep1() {
-    const hasType    = !!selectedType;
-    const hasMod     = !!document.getElementById('moduleSelect').value;
-    const hasLesson  = !!document.getElementById('lessonGroupSelect').value;
-    const hasTitle   = !!document.getElementById('entryTitle').value.trim();
+    const hasType   = !!selectedType;
+    const hasMod    = !!document.getElementById('moduleSelect').value;
+    const hasLesson = !!document.getElementById('lessonGroupSelect').value;
+    const hasTitle  = !!document.getElementById('entryTitle').value.trim();
     document.getElementById('step1Next').disabled = !(hasType && hasMod && hasLesson && hasTitle);
   }
 
-  document.getElementById('entryTitle').addEventListener('input', validateStep1);
-
-  // ── Step navigation ────────────────────────────
+  /* ── Step navigation ── */
   function goToStep(n) {
-    // Hide all panels
     document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
     document.getElementById(`step${n}`).classList.add('active');
     currentStep = n;
     updateProgress();
-
     if (n === 2) prepareStep2();
     if (n === 3) prepareStep3();
   }
@@ -713,45 +1503,43 @@
     for (let i = 1; i <= 3; i++) {
       const el = document.getElementById(`pb${i}`);
       el.className = 'step';
-      if (i < currentStep) el.classList.add('done');
+      if (i < currentStep)      el.classList.add('done');
       else if (i === currentStep) el.classList.add('active');
     }
   }
 
-  // ── Step 2: show correct fields ───────────────
+  /* ── Step 2: show correct fields ── */
   const typeLabels = {
-    reflection: ['Your Reflection', 'Write freely — no structure needed.'],
-    worksheet:  ['Worksheet Answers', 'Add each prompt and your answer below.'],
-    philosophers_note: ["Philosopher's Note", 'Capture the book, the ideas, and what they mean to you.'],
-    theory:     ['Theory / Concept', 'Explain the framework in your own words.'],
-    principle:  ['Personal Principle', 'A declaration that defines who you are.']
+    reflection:        ['Your Reflection',     'Write freely — no structure needed.'],
+    worksheet:         ['Worksheet Answers',    'Add each prompt and your answer below.'],
+    philosophers_note: ["Philosopher's Note",   'Capture the book, the ideas, and what they mean to you.'],
+    theory:            ['Theory / Concept',     'Explain the framework in your own words.'],
+    principle:         ['Personal Principle',   'A declaration that defines who you are.']
   };
 
   function prepareStep2() {
-    // Hide all type-specific field blocks
     ['reflection','worksheet','philosophers_note','theory','principle'].forEach(t => {
       document.getElementById(`fields-${t}`).style.display = 'none';
     });
     document.getElementById(`fields-${selectedType}`).style.display = '';
 
     const [title, sub] = typeLabels[selectedType];
-    document.getElementById('step2Title').textContent = title;
+    document.getElementById('step2Title').textContent    = title;
     document.getElementById('step2Subtitle').textContent = sub;
 
-    // Seed first Q&A pair for worksheets
     if (selectedType === 'worksheet' && document.getElementById('qaList').children.length === 0) {
       addQAPair();
     }
   }
 
-  // ── Q&A management ────────────────────────────
+  /* ── Q&A management ── */
   function addQAPair() {
     qaCounter++;
-    const id = qaCounter;
+    const id   = qaCounter;
     const list = document.getElementById('qaList');
-    const div = document.createElement('div');
+    const div  = document.createElement('div');
     div.className = 'qa-pair';
-    div.id = `qa-${id}`;
+    div.id        = `qa-${id}`;
     div.innerHTML = `
       <div class="pair-number">Question ${list.children.length + 1}</div>
       <button class="remove-btn" onclick="removeQA(${id})" title="Remove">✕</button>
@@ -784,7 +1572,7 @@
     });
   }
 
-  // ── Tags ──────────────────────────────────────
+  /* ── Tags ── */
   function setupTagInput() {
     const input = document.getElementById('tagInput');
     input.addEventListener('keydown', e => {
@@ -802,10 +1590,10 @@
   function addTag(val) {
     tags.push(val);
     const wrapper = document.getElementById('tagWrapper');
-    const chip = document.createElement('span');
+    const chip    = document.createElement('span');
     chip.className = 'tag-chip';
-    chip.id = `tag-${val}`;
-    chip.innerHTML = `${val} <button onclick="removeTag('${val}')" type="button">×</button>`;
+    chip.id        = `tag-${val}`;
+    chip.innerHTML = `${escHtml(val)} <button onclick="removeTag('${val.replace(/'/g,"\\'")}'); return false;" type="button">×</button>`;
     wrapper.insertBefore(chip, document.getElementById('tagInput'));
   }
 
@@ -815,7 +1603,7 @@
     if (chip) chip.remove();
   }
 
-  // ── Step 3: review summary ────────────────────
+  /* ── Step 3: review summary ── */
   function prepareStep3() {
     const title      = document.getElementById('entryTitle').value;
     const modSel     = document.getElementById('moduleSelect');
@@ -826,22 +1614,22 @@
     document.getElementById('reviewSummary').innerHTML = `
       <strong style="color:var(--text)">Ready to save</strong> &nbsp;·&nbsp;
       <span style="color:var(--text-dim); font-size:0.78rem">Heroic Coach</span><br/>
-      Type: <strong style="color:var(--accent)">${typeLabels[selectedType][0]}</strong><br/>
-      Module: <strong>${moduleName}</strong><br/>
-      Lesson group: <strong>${lgName}</strong><br/>
-      Title: <em>${title}</em><br/>
-      Tags: ${tags.length ? tags.map(t => `<span style="color:var(--accent)">#${t}</span>`).join(' ') : '—'}<br/>
+      Type: <strong style="color:var(--accent)">${escHtml(typeLabels[selectedType][0])}</strong><br/>
+      Module: <strong>${escHtml(moduleName)}</strong><br/>
+      Lesson group: <strong>${escHtml(lgName)}</strong><br/>
+      Title: <em>${escHtml(title)}</em><br/>
+      Tags: ${tags.length ? tags.map(t => `<span style="color:var(--accent)">#${escHtml(t)}</span>`).join(' ') : '—'}<br/>
       AI weight: <strong>${weight} / 10</strong>
     `;
   }
 
-  // ── Collect payload ────────────────────────────
+  /* ── Collect payload ── */
   function collectPayload() {
-    const type          = selectedType;
-    const moduleSlug    = document.getElementById('moduleSelect').value;
-    const lessonGroup   = document.getElementById('lessonGroupSelect').value;
-    const title         = document.getElementById('entryTitle').value.trim();
-    const weight        = parseInt(document.getElementById('aiWeight').value);
+    const type        = selectedType;
+    const moduleSlug  = document.getElementById('moduleSelect').value;
+    const lessonGroup = document.getElementById('lessonGroupSelect').value;
+    const title       = document.getElementById('entryTitle').value.trim();
+    const weight      = parseInt(document.getElementById('aiWeight').value);
 
     let body = null, summary = null, keyIdeas = null, sourceQuote = null;
     let pnBookTitle = null, pnBookAuthor = null;
@@ -849,7 +1637,7 @@
     let qaData = [];
 
     if (type === 'reflection') {
-      body = document.getElementById('reflection-body').value.trim();
+      body        = document.getElementById('reflection-body').value.trim();
       sourceQuote = document.getElementById('reflection-quote').value.trim() || null;
     } else if (type === 'worksheet') {
       summary = document.getElementById('worksheet-summary').value.trim() || null;
@@ -865,19 +1653,19 @@
       pnBookTitle  = document.getElementById('pn-book-title').value.trim();
       pnBookAuthor = document.getElementById('pn-book-author').value.trim() || null;
       const rawIdeas = document.getElementById('pn-key-ideas').value.trim();
-      keyIdeas = rawIdeas ? rawIdeas.split('\n').map(l => l.trim()).filter(Boolean) : null;
+      keyIdeas    = rawIdeas ? rawIdeas.split('\n').map(l => l.trim()).filter(Boolean) : null;
       sourceQuote = document.getElementById('pn-quote').value.trim() || null;
-      body = document.getElementById('pn-reflection').value.trim();
+      body        = document.getElementById('pn-reflection').value.trim();
     } else if (type === 'theory') {
       summary = document.getElementById('theory-summary').value.trim() || null;
-      body = document.getElementById('theory-body').value.trim();
+      body    = document.getElementById('theory-body').value.trim();
       const rawIdeas = document.getElementById('theory-key-ideas').value.trim();
-      keyIdeas = rawIdeas ? rawIdeas.split('\n').map(l => l.trim()).filter(Boolean) : null;
+      keyIdeas    = rawIdeas ? rawIdeas.split('\n').map(l => l.trim()).filter(Boolean) : null;
       sourceQuote = document.getElementById('theory-quote').value.trim() || null;
     } else if (type === 'principle') {
       principleStatement = document.getElementById('principle-statement').value.trim();
       principleCategory  = document.getElementById('principle-category').value || null;
-      body = document.getElementById('principle-body').value.trim() || null;
+      body        = document.getElementById('principle-body').value.trim() || null;
       sourceQuote = document.getElementById('principle-quote').value.trim() || null;
     }
 
@@ -885,20 +1673,20 @@
              pnBookTitle, pnBookAuthor, principleStatement, principleCategory, qaData };
   }
 
-  // ── Save to Supabase ───────────────────────────
+  /* ── Save to Supabase ── */
   async function saveEntry() {
     const btn = document.getElementById('saveBtn');
-    btn.disabled = true;
+    btn.disabled    = true;
     btn.textContent = 'Saving…';
 
     const p = collectPayload();
 
     try {
       const headers = {
-        'apikey': SUPABASE_ANON_KEY,
+        'apikey':        SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
+        'Content-Type':  'application/json',
+        'Prefer':        'return=representation'
       };
 
       // 1. Upsert book if philosophers_note
@@ -913,7 +1701,7 @@
         bookId = bookData[0]?.id || null;
       }
 
-      // 2. Resolve module UUID and lesson group UUID from Supabase
+      // 2. Resolve module UUID and lesson group UUID
       let moduleId = null, lessonGroupId = null;
       if (p.moduleSlug) {
         const modRes = await fetch(
@@ -958,7 +1746,7 @@
         throw new Error(err.message || 'Entry insert failed');
       }
       const entryData = await entryRes.json();
-      const entryId = entryData[0]?.id;
+      const entryId   = entryData[0]?.id;
 
       // 4. Insert Q&A pairs
       if (p.type === 'worksheet' && p.qaData.length && entryId) {
@@ -992,31 +1780,34 @@
         });
       }
 
+      // Invalidate library cache so next visit fetches fresh data
+      libraryLoaded = false;
+
       showToast('Entry saved ✓', 'success');
       setTimeout(resetForm, 1800);
 
     } catch (err) {
       showToast(`Error: ${err.message}`, 'error');
-      btn.disabled = false;
+      btn.disabled    = false;
       btn.textContent = 'Save entry';
     }
   }
 
-  // ── Reset ──────────────────────────────────────
+  /* ── Reset form ── */
   function resetForm() {
     selectedType = null;
-    tags = [];
-    qaCounter = 0;
+    tags         = [];
+    qaCounter    = 0;
     document.querySelectorAll('.type-tile').forEach(t => t.classList.remove('selected'));
-    document.getElementById('moduleSelect').value = '';
+    document.getElementById('moduleSelect').value      = '';
     document.getElementById('lessonGroupSelect').innerHTML = '<option value="">— Select lesson group —</option>';
     document.getElementById('lessonGroupField').style.display = 'none';
-    document.getElementById('entryTitle').value = '';
+    document.getElementById('entryTitle').value        = '';
     document.getElementById('tagWrapper').querySelectorAll('.tag-chip').forEach(c => c.remove());
-    document.getElementById('tagInput').value = '';
-    document.getElementById('aiWeight').value = 5;
-    document.getElementById('weightVal').textContent = '5';
-    document.getElementById('qaList').innerHTML = '';
+    document.getElementById('tagInput').value          = '';
+    document.getElementById('aiWeight').value          = 5;
+    document.getElementById('weightVal').textContent   = '5';
+    document.getElementById('qaList').innerHTML        = '';
     ['reflection-body','reflection-quote','worksheet-summary','pn-book-title','pn-book-author',
      'pn-key-ideas','pn-quote','pn-reflection','theory-summary','theory-body','theory-key-ideas',
      'theory-quote','principle-statement','principle-body','principle-quote'].forEach(id => {
@@ -1024,17 +1815,28 @@
        if (el) el.value = '';
      });
     document.getElementById('principle-category').value = '';
-    document.getElementById('saveBtn').disabled = false;
+    document.getElementById('saveBtn').disabled    = false;
     document.getElementById('saveBtn').textContent = 'Save entry';
     goToStep(1);
   }
 
-  // ── Toast ──────────────────────────────────────
+  /* ── Toast ── */
   function showToast(msg, type = '') {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.className = `show ${type}`;
     setTimeout(() => { t.className = ''; }, 3500);
+  }
+
+  /* ── HTML escape utility ── */
+  function escHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 </script>
 </body>
