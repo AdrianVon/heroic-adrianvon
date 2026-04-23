@@ -1331,32 +1331,29 @@
   }
 
   function populateModuleFilter() {
-    const seen = new Map();
-    allEntries.forEach(e => {
-      const mod = e.heroic_modules;
-      if (mod && mod.number != null && !seen.has(mod.number)) {
-        seen.set(mod.number, mod.title || '');
-      }
-    });
-
-    // Sort by number (numeric sort)
-    const sorted = Array.from(seen.entries()).sort((a, b) => {
-      const an = parseFloat(a[0]);
-      const bn = parseFloat(b[0]);
-      return an - bn;
-    });
-
+    // Use the already-fetched _modulesCache — keyed by UUID, values have {id, number, title}
     const sel = document.getElementById('libraryModuleFilter');
-    // Preserve current value if possible
     const currentVal = sel.value;
     sel.innerHTML = '<option value="">All modules</option>';
-    sorted.forEach(([num, title]) => {
-      const opt = document.createElement('option');
-      opt.value = String(num);
-      opt.textContent = `Module ${num}${title ? ' — ' + title : ''}`;
-      sel.appendChild(opt);
-    });
-    // Restore selection if still valid
+
+    if (_modulesCache) {
+      // Sort modules by number
+      const mods = Object.values(_modulesCache).sort((a, b) => {
+        const an = isNaN(parseFloat(a.number)) ? 999 : parseFloat(a.number);
+        const bn = isNaN(parseFloat(b.number)) ? 999 : parseFloat(b.number);
+        return an - bn;
+      });
+      mods.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id; // filter by UUID so it matches entry.module_id directly
+        const label = isNaN(parseFloat(m.number))
+          ? `${m.number} — ${m.title}`
+          : `Module ${m.number} — ${m.title}`;
+        opt.textContent = label;
+        sel.appendChild(opt);
+      });
+    }
+
     if (currentVal) sel.value = currentVal;
   }
 
@@ -1367,15 +1364,15 @@
 
     let filtered = allEntries.filter(e => {
       if (typeFilter && e.entry_type !== typeFilter) return false;
-      if (modFilter && String(e.heroic_modules?.number) !== modFilter) return false;
+      if (modFilter && e.module_id !== modFilter) return false;
       if (!query) return true;
       const haystack = [
         e.title || '',
         e.entry_type || '',
         ...(e.tags || []),
-        e.heroic_modules?.title || '',
-        e.heroic_modules?.number != null ? String(e.heroic_modules.number) : '',
-        e.heroic_lesson_groups?.title || ''
+        (_modulesCache?.[e.module_id]?.title) || '',
+        (_modulesCache?.[e.module_id]?.number != null ? String(_modulesCache[e.module_id].number) : ''),
+        (_lessonGroupsCache?.[e.lesson_group_id]?.title) || ''
       ].join(' ').toLowerCase();
       return haystack.includes(query);
     });
@@ -1406,12 +1403,14 @@
       ? new Date(e.created_at).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' })
       : '—';
 
-    // Module + lesson group info
+    // Module + lesson group info — look up directly from caches using raw IDs
     let moduleInfoHtml = '';
-    const modNum   = e.heroic_modules?.number;
-    const modTitle = e.heroic_modules?.title;
-    const lgNum    = e.heroic_lesson_groups?.number;
-    const lgTitle  = e.heroic_lesson_groups?.title;
+    const modObj   = (e.module_id && _modulesCache) ? _modulesCache[e.module_id] : null;
+    const lgObj    = (e.lesson_group_id && _lessonGroupsCache) ? _lessonGroupsCache[e.lesson_group_id] : null;
+    const modNum   = modObj?.number;
+    const modTitle = modObj?.title;
+    const lgNum    = lgObj?.number;
+    const lgTitle  = lgObj?.title;
 
     const modulePart     = modNum != null ? `Module ${escHtml(String(modNum))}${modTitle ? ' \u2014 ' + escHtml(modTitle) : ''}` : '';
     const lgPart         = lgNum  != null ? `${escHtml(String(lgNum))}${lgTitle ? ' ' + escHtml(lgTitle) : ''}` : '';
